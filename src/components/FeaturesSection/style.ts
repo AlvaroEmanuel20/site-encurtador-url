@@ -94,6 +94,11 @@ export const FeaturesContainer = styled.section`
                     left: 43%;
                 }
 
+                @media (max-width: 401px) {
+                    top: 110%;
+                    left: 42%;
+                }
+
                 @media (max-width: 376px) {
                     top: 110%;
                     left: 41%;
@@ -119,6 +124,10 @@ export const FeaturesContainer = styled.section`
 
                 @media (max-width: 540px) {
                     left: 43%;
+                }
+
+                @media (max-width: 401px) {
+                    left: 42%;
                 }
 
                 @media (max-width: 376px) {
