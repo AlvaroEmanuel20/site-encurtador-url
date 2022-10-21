@@ -39,10 +39,6 @@ export const ShortenCardContainer = styled.section<IShortenCard>`
                 gap: 15px;
             }
 
-            @media (max-width: 760px) {
-                flex-grow: 0;
-            }
-
             .form__input {
                 flex-grow: 1;
                 position: relative;
@@ -65,7 +61,7 @@ export const ShortenCardContainer = styled.section<IShortenCard>`
                 border-radius: 10px;
                 padding: 16px 20px;
                 font-size: 1.2rem;
-                min-width: 100%;
+                width: 100%;
                 border: ${props => props.error ? "3px solid hsl(0, 87%, 67%)" : "0"};
 
                 &::placeholder {
