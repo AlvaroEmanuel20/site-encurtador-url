@@ -1,46 +1,187 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Landing Page com Encurtador de URL
 
-## Available Scripts
+Esse é um projeto que faz parte do catálogo de desafios do site [Frontend Mentor](https://www.frontendmentor.io/). O desafio é criar uma landing page responsiva que tem a funcionalidade de encurtar URLs usando a API [Shrtcode API](https://shrtco.de/docs).
 
-In the project directory, you can run:
+Acesse por aqui e faça um teste: https://site-encurtador-url.vercel.app/
+## Funcionalidades
 
-### `npm start`
+- Responsividade
+- Consumo de API
+- Encurtamento de URL
+- Armazenamento em Local Storage (Armazenamento do navegador)
+- Botão para copiar a url encurtada
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Tecnologias utilizadas
 
-### `npm test`
+**Frontend:** React, Typescript e Styled Components
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**Backend:** API [Shrtcode](https://shrtco.de/docs)
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Funcionalidades explicadas
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Consumo da API e Armazenamento em Local Storage
 
-### `npm run eject`
+Componente: ShortenCard
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Caminho: `\src\components\ShortenCard\index.tsx`
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```javascript
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+    if (!value) {
+        setError(value ? "" : "Please add a link");
+        return null;
+    }
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+    const url = "https://api.shrtco.de/v2/shorten?url=" + value;
+    const res = await fetch(url, {method: "POST"});
+    const shortLink = await res.json();
+        
+    if (!shortLink.ok) {
+        setError(shortLink.error);
+    } else {
+        const linksArray: ILinks[] = JSON.parse(
+            localStorage.getItem("links") || "[]"
+        );
+        linksArray.push({
+            link: value,
+            shortLink: shortLink.result.full_short_link
+        });
+        setLinks(linksArray);
+        localStorage.setItem("links", JSON.stringify(linksArray));
+    }
+}
 
-## Learn More
+useEffect(() => {
+    const linksStoraged: ILinks[] = JSON.parse(
+        localStorage.getItem("links") || "[]"
+    );
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    setLinks(linksStoraged);
+    setLoading(false);
+}, []);
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+A função `handleSubmit` faz o envio do formulário e armazena a resposta no `localStorage`.
+
+### Validar dados
+
+```javascript
+if (!value) {
+    setError(value ? "" : "Please add a link");
+    return null;
+}
+```
+
+Esse trecho faz uma simples validação para verificar se um valor foi enviado no input.
+
+### Consumo da API
+
+```javascript
+const url = "https://api.shrtco.de/v2/shorten?url=" + value;
+const res = await fetch(url, {method: "POST"});
+const shortLink = await res.json();
+```
+
+Esse trecho faz a requisição para a API usando a url que será encurtada e converte o resultado (url encurtada) de JSON para objeto javascript.
+
+### Armazenamento no Local Storage
+
+```javascript
+if (!shortLink.ok) {
+    setError(shortLink.error);
+} else {
+    const linksArray: ILinks[] = JSON.parse(
+        localStorage.getItem("links") || "[]"
+    );
+    linksArray.push({
+        link: value,
+        shortLink: shortLink.result.full_short_link
+    });
+    setLinks(linksArray);
+    localStorage.setItem("links", JSON.stringify(linksArray));
+}
+```
+
+Esse trecho verifica as informações recebidas se estão ok. E então caso estejam, o programa puxa o que está no `localStorage` e caso não tenha nada retorna um array vazio.
+
+Então ele adiciona o objeto que contém o link original e o link encurtado no array de objetos e adiciona no `localStorage`.
+
+### Carregar os dados do Local Storage
+
+```javascript
+useEffect(() => {
+    const linksStoraged: ILinks[] = JSON.parse(
+        localStorage.getItem("links") || "[]"
+    );
+
+    setLinks(linksStoraged);
+    setLoading(false);
+}, []);
+```
+
+Por fim eu utilizo o hook `useEffect` para carregar os links que estão no `localStorage` e mostrar na tela.
+## Copiar link encurtado
+
+Componente: ShortenedCard
+
+Caminho: `\src\components\ShortenedCard\index.tsx`
+
+```javascript
+const inputShortLink = useRef<null | HTMLInputElement>(null);
+const copyToClipboard = () => {
+    inputShortLink.current?.select();
+    inputShortLink.current?.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(inputShortLink.current?.value || "");
+}
+```
+
+A função `copyToClipboard` é a responsável pela funcionalidade de copiar. Eu criei ela com base na documentação do W3CSchools [How to copy to clipboard](https://www.w3schools.com/howto/howto_js_copy_clipboard.asp) porém com adaptações para React e para o Typescript.
+
+Para selecionar o `input` utilizei o hook `useRef` que pode ser usado para acessar um elemento DOM facilmente. Ele faz referência ao seguinte elemento:
+
+`<input ref={inputShortLink} type="url" defaultValue={shortLink}/>`
+
+O objeto `current` me dá acesso ao input e seu valor. E o `navigator` me permite acessar opções do navegador.
+
+## Aprendizado
+
+Com esse projeto pude exercitar meus conhecimentos em React como:
+
+- Hooks
+- React com Typescript
+- Props
+- Componentização
+
+Também pude aprender conceitos do Styled Components como:
+
+- Extender estilos de componentes
+- Passar props para o componente de estilo
+
+
+## Instalação
+
+Clone esse projeto para sua máquina e instale.
+
+```bash
+  git clone https://github.com/AlvaroEmanuel20/site-encurtador-url.git
+  npm install
+  npm start
+```
+    
+## 🚀 Autor
+Olá me chamo Álvaro e sou um Desenvolvedor Web e estudante de Engenharia de Software. Redes sociais:
+
+- Github: [AlvaroEmanuel20](https://github.com/AlvaroEmanuel20)
+- Linkedin: [@alvaroemanuel20](https://www.linkedin.com/in/alvaroemanuel20)
+- Instagram: [@alvaro1dias](https://instagram.com/alvaro1dias)
+- Twitter: [@alvaro1dias](https://twitter.com/alvaro1dias)
+
+### Contato
+
+- E-mail: contato@alvaroemanuel.com
